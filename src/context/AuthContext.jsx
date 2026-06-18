@@ -1,54 +1,50 @@
-import { createContext, useContext, useState } from 'react';
-
-const USERS = [
-  {
-    id: 1,
-    name: 'Dr. Arjun Mehta',
-    email: 'dr.arjun@mehtaaesthetics.com',
-    password: 'doctor123',
-    role: 'doctor',
-    initials: 'AM',
-  },
-  {
-    id: 2,
-    name: 'Priya Nair',
-    email: 'reception@mehtaaesthetics.com',
-    password: 'staff123',
-    role: 'receptionist',
-    initials: 'PN',
-  },
-];
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('medremind_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  function login(email, password) {
-    const user = USERS.find(u => u.email === email && u.password === password);
-    if (user) {
-      const { password: _, ...safeUser } = user;
-      setCurrentUser(safeUser);
-      localStorage.setItem('medremind_user', JSON.stringify(safeUser));
-      return true;
-    }
-    return false;
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ? buildUser(session.user) : null);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ? buildUser(session.user) : null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  function buildUser(user) {
+    const meta = user.user_metadata || {};
+    const name = meta.name || user.email;
+    return {
+      id: user.id,
+      email: user.email,
+      name,
+      role: meta.role || 'receptionist',
+      initials: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+    };
   }
 
-  function logout() {
-    setCurrentUser(null);
-    localStorage.removeItem('medremind_user');
+  async function login(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return !error;
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
   }
 
   const isDoctor = currentUser?.role === 'doctor';
   const isReceptionist = currentUser?.role === 'receptionist';
+
+  if (loading) return null;
 
   return (
     <AuthContext.Provider value={{ currentUser, login, logout, isDoctor, isReceptionist }}>

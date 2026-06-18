@@ -3,7 +3,7 @@ import { X, MessageCircle, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { reminderTemplates } from '../data/mockData';
 
-export default function ReminderModal({ patient, onClose }) {
+export default function ReminderModal({ patient, appointmentDate, scheduledReminderId, onClose }) {
   const { doctor, sendReminder } = useApp();
   const [selectedTemplate, setSelectedTemplate] = useState('followup');
   const [customMessage, setCustomMessage] = useState('');
@@ -12,16 +12,17 @@ export default function ReminderModal({ patient, onClose }) {
   useEffect(() => {
     const template = reminderTemplates.find(t => t.id === selectedTemplate);
     if (template && template.text) {
+      const dateForMsg = appointmentDate || patient.nextVisit;
       const msg = template.text
         .replace('{name}', patient.name)
         .replace('{doctor}', doctor.name)
         .replace('{clinic}', doctor.clinic)
-        .replace('{date}', patient.nextVisit ? formatDate(patient.nextVisit) : 'TBD');
+        .replace('{date}', dateForMsg ? formatDate(dateForMsg) : 'TBD');
       setPreviewMessage(msg);
     } else {
       setPreviewMessage(customMessage);
     }
-  }, [selectedTemplate, customMessage, patient, doctor]);
+  }, [selectedTemplate, customMessage, patient, doctor, appointmentDate]);
 
   function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString('en-IN', {
@@ -35,7 +36,7 @@ export default function ReminderModal({ patient, onClose }) {
   function handleSend() {
     const message = selectedTemplate === 'custom' ? customMessage : previewMessage;
     if (!message.trim()) return;
-    sendReminder(patient, message, selectedTemplate);
+    sendReminder(patient, message, selectedTemplate, scheduledReminderId ?? null);
     onClose();
   }
 

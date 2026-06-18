@@ -1,12 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { cosmetologyTreatments } from '../data/mockData';
 
+function validatePatientId(value, patients, currentId) {
+  const trimmed = value.trim();
+  if (!trimmed) return 'Patient ID is required.';
+  if (!/^[A-Za-z0-9\-]{2,20}$/.test(trimmed))
+    return 'Use 2–20 characters: letters, numbers, or hyphens only.';
+  const duplicate = patients.find(p =>
+    p.patientId &&
+    p.patientId.toLowerCase() === trimmed.toLowerCase() &&
+    p.id !== currentId
+  );
+  if (duplicate) return `Patient ID "${trimmed}" is already registered.`;
+  return null;
+}
+
 function validateForm(form, isDoctor) {
   const errors = {};
+  if (!form.patientId.trim()) errors.patientId = 'Patient ID is required.';
+  else if (!/^[A-Za-z0-9\-]{2,20}$/.test(form.patientId.trim()))
+    errors.patientId = 'Use 2–20 characters: letters, numbers, or hyphens only.';
   if (!form.name.trim()) errors.name = 'Full name is required.';
   const digits = form.phone.replace(/\D/g, '');
   if (!digits) errors.phone = 'Phone number is required.';
@@ -21,7 +38,7 @@ function validateForm(form, isDoctor) {
 export default function PatientForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addPatient, updatePatient, getPatient } = useApp();
+  const { addPatient, updatePatient, getPatient, patients } = useApp();
   const { isDoctor } = useAuth();
   const isEdit = !!id;
 
@@ -32,6 +49,7 @@ export default function PatientForm() {
   }
 
   const [form, setForm] = useState({
+    patientId: '',
     name: '',
     age: '',
     gender: 'Male',
@@ -50,6 +68,7 @@ export default function PatientForm() {
       const patient = getPatient(id);
       if (patient) {
         setForm({
+          patientId: patient.patientId || patient.id || '',
           name: patient.name,
           age: String(patient.age),
           gender: patient.gender,
@@ -68,28 +87,40 @@ export default function PatientForm() {
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: undefined }));
+    if (name === 'patientId') {
+      const error = validatePatientId(value, patients, id);
+      setErrors(prev => ({ ...prev, patientId: error || undefined }));
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const errs = validateForm(form, isDoctor);
+    const idDupError = !errs.patientId
+      ? validatePatientId(form.patientId, patients, id)
+      : null;
+    if (idDupError) errs.patientId = idDupError;
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
     const data = {
       ...form,
+      patientId: form.patientId.trim(),
       age: parseInt(form.age),
       phone: form.phone.startsWith('91') ? form.phone : `91${form.phone}`,
     };
 
     if (isEdit) {
-      updatePatient(id, data);
+      await updatePatient(id, data);
       navigate(`/patients/${id}`);
     } else {
-      const newPatient = addPatient(data);
-      navigate(`/patients/${newPatient.id}`);
+      const newPatient = await addPatient(data);
+      if (newPatient) navigate(`/patients/${newPatient.id}`);
     }
   }
+
+  const patientIdIsValid = form.patientId.trim().length > 0 && !errors.patientId;
 
   return (
     <div>
@@ -106,6 +137,29 @@ export default function PatientForm() {
 
       <div className="card" style={{ maxWidth: 720 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          <div className="form-group">
+            <label className="form-label">Patient ID *</label>
+            <div className="patient-id-input-wrap">
+              <input
+                className={`form-input ${errors.patientId ? 'input-error' : patientIdIsValid ? 'input-valid' : ''}`}
+                name="patientId"
+                value={form.patientId}
+                onChange={handleChange}
+                placeholder="e.g. PT-2026-001"
+                maxLength={20}
+                autoComplete="off"
+              />
+              {patientIdIsValid && (
+                <CheckCircle size={16} className="patient-id-check" />
+              )}
+            </div>
+            {errors.patientId
+              ? <span className="field-error">{errors.patientId}</span>
+              : <span className="field-hint">Unique clinic identifier — letters, numbers, hyphens (2–20 chars).</span>
+            }
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Full Name *</label>

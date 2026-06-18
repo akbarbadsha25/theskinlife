@@ -1,8 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Bell, Settings, Activity, MessageCircle, CalendarDays, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, MessageCircle, CalendarDays, LogOut, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { currentUser, logout, isDoctor } = useAuth();
   const location = useLocation();
 
@@ -15,15 +15,16 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${open ? ' open' : ''}`}>
       <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <Activity size={22} />
-        </div>
-        <div className="sidebar-brand">
-          <h1>MedRemind</h1>
-          <span>Aesthetics</span>
-        </div>
+        <img
+          src="https://www.theskinlife.co.in/SL_grn_bg.png"
+          alt="The Skin Life"
+          className="sidebar-logo-img"
+        />
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">
+          <X size={18} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">

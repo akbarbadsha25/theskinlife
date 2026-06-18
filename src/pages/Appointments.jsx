@@ -17,6 +17,7 @@ export default function Appointments() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [bookingForm, setBookingForm] = useState({ patientId: '', treatment: '' });
   const [confirmCancelId, setConfirmCancelId] = useState(null);
+  const [activeTab, setActiveTab] = useState('calendar');
 
   // Patient combobox state
   const [patientSearch, setPatientSearch] = useState('');
@@ -140,6 +141,11 @@ export default function Appointments() {
   function prevMonth() { setCurrentMonth(new Date(year, month - 1, 1)); }
   function nextMonth() { setCurrentMonth(new Date(year, month + 1, 1)); }
 
+  function handleDateSelect(dateStr) {
+    setSelectedDate(dateStr);
+    setActiveTab('slots');
+  }
+
   function handleSlotClick(slot) {
     if (isPastDate || !isWorkingDay) return;
     if (isSlotBooked(selectedDate, slot)) return;
@@ -212,7 +218,28 @@ export default function Appointments() {
         </div>
       </div>
 
-      <div className="appointments-layout">
+      {/* Mobile tab bar — hidden on desktop via CSS */}
+      <div className="appt-mobile-tabs">
+        <button
+          className={`appt-tab-btn${activeTab === 'calendar' ? ' active' : ''}`}
+          onClick={() => setActiveTab('calendar')}
+        >
+          <CalendarDays size={15} />
+          Calendar
+        </button>
+        <button
+          className={`appt-tab-btn${activeTab === 'slots' ? ' active' : ''}`}
+          onClick={() => setActiveTab('slots')}
+        >
+          <Clock size={15} />
+          Schedule
+          {dayAppointments.length > 0 && (
+            <span className="appt-tab-count">{dayAppointments.length}</span>
+          )}
+        </button>
+      </div>
+
+      <div className={`appointments-layout appt-layout--${activeTab}`}>
         {/* Calendar Panel */}
         <div className="card calendar-panel">
           <div className="calendar-header">
@@ -229,7 +256,7 @@ export default function Appointments() {
                 key={i}
                 className={`cal-day ${d.isSelected ? 'selected' : ''} ${d.isToday ? 'today' : ''} ${d.isFull ? 'full' : ''} ${!d.isWorkingDay ? 'off-day' : ''} ${d.isPast ? 'past' : ''}`}
                 disabled={!d.day || !d.isWorkingDay || d.isPast}
-                onClick={() => d.day && d.isWorkingDay && !d.isPast && setSelectedDate(d.date)}
+                onClick={() => d.day && d.isWorkingDay && !d.isPast && handleDateSelect(d.date)}
               >
                 {d.day && (
                   <>

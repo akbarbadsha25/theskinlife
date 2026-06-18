@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -10,26 +10,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setTimeout(() => {
-      const ok = login(email, password);
-      if (!ok) setError('Invalid email or password. Please try again.');
-      setLoading(false);
-    }, 400);
-  }
-
-  function fillDemo(role) {
-    if (role === 'doctor') {
-      setEmail('dr.arjun@mehtaaesthetics.com');
-      setPassword('doctor123');
-    } else {
-      setEmail('reception@mehtaaesthetics.com');
-      setPassword('staff123');
-    }
-    setError('');
+    const ok = await login(email, password);
+    if (!ok) setError('Invalid email or password. Please try again.');
+    setLoading(false);
   }
 
   return (
@@ -38,38 +25,28 @@ export default function Login() {
       {/* ── Left: Brand panel ── */}
       <div className="login-left">
         <div className="login-left-inner">
-          <div className="login-brand">
-            <div className="login-brand-icon">
-              <Activity size={20} />
-            </div>
-            <div className="login-brand-text">
-              <span className="login-brand-name">MedRemind</span>
-              <span className="login-brand-sub">Aesthetics</span>
-            </div>
-          </div>
-
           <div className="login-hero">
-            <h1>Smart clinic management for modern doctors.</h1>
-            <p>Everything your practice needs — patients, appointments, and WhatsApp reminders in one place.</p>
+            <h1>Redefining Beauty Through Science.</h1>
+            <p>Premium aesthetic clinic management — patients, appointments, and WhatsApp reminders, beautifully organised.</p>
           </div>
 
           <ul className="login-features">
-            <li><CheckCircle size={15} /><span>Complete patient records & visit history</span></li>
-            <li><CheckCircle size={15} /><span>Appointment scheduling with daily limits</span></li>
-            <li><CheckCircle size={15} /><span>WhatsApp reminders in one click</span></li>
-            <li><CheckCircle size={15} /><span>Role-based access for your team</span></li>
+            <li><span>Complete patient records & visit history</span></li>
+            <li><span>Appointment scheduling with daily limits</span></li>
+            <li><span>WhatsApp reminders in one click</span></li>
+            <li><span>Role-based access for your team</span></li>
           </ul>
 
           <div className="login-left-card">
             <div className="login-stat-row">
               <div className="login-stat">
-                <span className="login-stat-value">15+</span>
+                <span className="login-stat-value">∞</span>
                 <span className="login-stat-label">Patients</span>
               </div>
               <div className="login-stat-divider" />
               <div className="login-stat">
-                <span className="login-stat-value">8</span>
-                <span className="login-stat-label">Today's apts</span>
+                <span className="login-stat-value">Live</span>
+                <span className="login-stat-label">Appointments</span>
               </div>
               <div className="login-stat-divider" />
               <div className="login-stat">
@@ -84,6 +61,12 @@ export default function Login() {
       {/* ── Right: Form panel ── */}
       <div className="login-right">
         <div className="login-form-wrap">
+
+          <div className="login-form-logo">
+            <img src="https://www.theskinlife.co.in/logo.png" alt="" className="login-form-logo-emblem" />
+            <img src="https://www.theskinlife.co.in/brandname.png" alt="The Skin Life" className="login-form-logo-brand" />
+          </div>
+
           <div className="login-heading">
             <h2>Welcome back</h2>
             <p>Sign in to your clinic dashboard</p>
@@ -132,21 +115,6 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="login-demo">
-            <div className="login-demo-label">Demo accounts — click to fill</div>
-            <div className="login-demo-cards">
-              <button className="login-demo-card" type="button" onClick={() => fillDemo('doctor')}>
-                <span className="login-demo-role doctor">Doctor</span>
-                <span className="login-demo-email">dr.arjun@mehtaaesthetics.com</span>
-                <span className="login-demo-pass">doctor123</span>
-              </button>
-              <button className="login-demo-card" type="button" onClick={() => fillDemo('receptionist')}>
-                <span className="login-demo-role receptionist">Reception</span>
-                <span className="login-demo-email">reception@mehtaaesthetics.com</span>
-                <span className="login-demo-pass">staff123</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
