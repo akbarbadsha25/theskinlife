@@ -47,43 +47,48 @@ export function AppProvider({ children }) {
   const [doctorData, setDoctorData] = useState(defaultDoctorProfile);
   const [dataLoading, setDataLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const [
-        { data: pData },
-        { data: aData },
-        { data: rData },
-        { data: cData },
-        { data: dData },
-      ] = await Promise.all([
-        supabase.from('patients').select('*').order('created_at', { ascending: false }),
-        supabase.from('appointments').select('*').order('date', { ascending: true }),
-        supabase.from('reminders').select('*').order('created_at', { ascending: false }),
-        supabase.from('clinic_settings').select('*').eq('id', 1).single(),
-        supabase.from('doctor_profile').select('*').eq('id', 1).single(),
-      ]);
+  const loadAllData = useCallback(async () => {
+    const [
+      { data: pData },
+      { data: aData },
+      { data: rData },
+      { data: cData },
+      { data: dData },
+    ] = await Promise.all([
+      supabase.from('patients').select('*').order('created_at', { ascending: false }),
+      supabase.from('appointments').select('*').order('date', { ascending: true }),
+      supabase.from('reminders').select('*').order('created_at', { ascending: false }),
+      supabase.from('clinic_settings').select('*').eq('id', 1).single(),
+      supabase.from('doctor_profile').select('*').eq('id', 1).single(),
+    ]);
 
-      if (pData) setPatients(pData.map(toPatient));
-      if (aData) setAppointments(aData.map(toAppointment));
-      if (rData) setReminders(rData.map(toReminder));
-      if (cData) setClinicConfig({
-        dailyPatientLimit: cData.daily_patient_limit,
-        workingDays: cData.working_days,
-        reminderDaysBefore: cData.reminder_days_before ?? 2,
-        followupDaysAfter: cData.followup_days_after ?? 0,
-      });
-      if (dData) setDoctorData({
-        name: dData.name || defaultDoctorProfile.name,
-        specialization: dData.specialization || defaultDoctorProfile.specialization,
-        clinic: dData.clinic || defaultDoctorProfile.clinic,
-        phone: dData.phone || '',
-        email: dData.email || '',
-        address: dData.address || '',
-      });
-      setDataLoading(false);
-    }
-    load();
+    if (pData) setPatients(pData.map(toPatient));
+    if (aData) setAppointments(aData.map(toAppointment));
+    if (rData) setReminders(rData.map(toReminder));
+    if (cData) setClinicConfig({
+      dailyPatientLimit: cData.daily_patient_limit,
+      workingDays: cData.working_days,
+      reminderDaysBefore: cData.reminder_days_before ?? 2,
+      followupDaysAfter: cData.followup_days_after ?? 0,
+    });
+    if (dData) setDoctorData({
+      name: dData.name || defaultDoctorProfile.name,
+      specialization: dData.specialization || defaultDoctorProfile.specialization,
+      clinic: dData.clinic || defaultDoctorProfile.clinic,
+      phone: dData.phone || '',
+      email: dData.email || '',
+      address: dData.address || '',
+    });
+    setDataLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadAllData();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') loadAllData();
+    });
+    return () => subscription.unsubscribe();
+  }, [loadAllData]);
 
   // ── Patients ──────────────────────────────────────────────────────────────
 
@@ -122,7 +127,11 @@ export function AppProvider({ children }) {
       showToast('Patient added successfully!', 'success');
       return newPatient;
     }
-    showToast('Failed to add patient.', 'error');
+    if (error?.code === '23505') {
+      showToast(`Patient ID ${id} is already taken. Please use a different ID.`, 'error');
+    } else {
+      showToast('Failed to add patient. Please try again.', 'error');
+    }
     return null;
   }, []);
 
