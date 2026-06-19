@@ -5,7 +5,7 @@ import { reminderTemplates } from '../data/mockData';
 
 export default function ReminderModal({ patient, appointmentDate, scheduledReminderId, onClose }) {
   const { doctor, sendReminder } = useApp();
-  const [selectedTemplate, setSelectedTemplate] = useState('followup');
+  const [selectedTemplate, setSelectedTemplate] = useState('appointment_reminder');
   const [customMessage, setCustomMessage] = useState('');
   const [previewMessage, setPreviewMessage] = useState('');
 
@@ -14,10 +14,11 @@ export default function ReminderModal({ patient, appointmentDate, scheduledRemin
     if (template && template.text) {
       const dateForMsg = appointmentDate || patient.nextVisit;
       const msg = template.text
-        .replace('{name}', patient.name)
-        .replace('{doctor}', doctor.name)
-        .replace('{clinic}', doctor.clinic)
-        .replace('{date}', dateForMsg ? formatDate(dateForMsg) : 'TBD');
+        .replace(/{name}/g, patient.name)
+        .replace(/{doctor}/g, doctor.name)
+        .replace(/{clinic}/g, doctor.clinic)
+        .replace(/{treatment}/g, patient.treatment || 'your treatment')
+        .replace(/{date}/g, dateForMsg ? formatDate(dateForMsg) : 'TBD');
       setPreviewMessage(msg);
     } else {
       setPreviewMessage(customMessage);

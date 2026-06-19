@@ -57,23 +57,33 @@ export const cosmetologyTreatments = [
 
 export const reminderTemplates = [
   {
-    id: 'followup',
-    label: 'Follow-up Reminder',
-    text: 'Hello {name}, this is a reminder from Dr. {doctor} at {clinic}. Your follow-up visit is scheduled for {date}. Please confirm your appointment. Thank you! 🏥',
+    id: 'appointment_reminder',
+    label: '📅 Appointment Reminder',
+    text: 'Hello {name}! 👋\n\nThis is a reminder from *{clinic}*.\n\nYour *{treatment}* appointment is confirmed for *{date}*.\n\nPlease arrive 10 minutes early. If you need to reschedule, kindly let us know in advance.\n\nSee you soon! ✨',
   },
   {
-    id: 'checkup',
-    label: 'Regular Check-up',
-    text: 'Hi {name}, it\'s time for your regular health check-up with Dr. {doctor}. We have you scheduled for {date}. Please visit us at {clinic}. Stay healthy! 💊',
+    id: 'post_visit_followup',
+    label: '💚 Post-Visit Follow-up',
+    text: 'Hello {name}! 😊\n\nThank you for visiting *{clinic}* today!\n\nWe hope your *{treatment}* session went well. Please follow the aftercare instructions shared by our team.\n\n💧 Stay hydrated and avoid direct sun exposure for 48 hours.\n\nFeel free to reach out if you have any questions. Take care! 🌟',
   },
   {
-    id: 'report',
-    label: 'Report Collection',
-    text: 'Dear {name}, your test reports are ready for collection at {clinic}. Please visit us during clinic hours. For queries, contact Dr. {doctor}. 📋',
+    id: 'care_instructions',
+    label: '🌿 Care Instructions',
+    text: 'Hello {name}! 🌸\n\nPost-treatment care reminder from *{clinic}*:\n\n✅ Avoid direct sunlight for 48 hours\n✅ Apply sunscreen SPF 30+ every day\n✅ Keep your skin well hydrated\n✅ Avoid makeup for 24 hours\n✅ Do not scrub or exfoliate for 3 days\n✅ Drink plenty of water\n\nFor any concerns, please contact us anytime. Take care! 💚',
+  },
+  {
+    id: 'next_appointment',
+    label: '📆 Next Appointment Due',
+    text: 'Hello {name}! 👋\n\nIt\'s been a while since your last visit at *{clinic}*. 💆‍♀️\n\nFor the best results with your *{treatment}*, we recommend scheduling your next session soon.\n\nPlease call us or reply here to book your appointment. We look forward to seeing you! 🌟',
+  },
+  {
+    id: 'review_request',
+    label: '⭐ Review Request',
+    text: 'Hello {name}! 😊\n\nWe hope you are loving the results of your *{treatment}* at *{clinic}*! ✨\n\nYour feedback means the world to us and helps us serve you better.\n\nWould you kindly take a moment to share your experience? We truly appreciate it! 💛\n\nThank you for trusting us with your skin care! 🌸',
   },
   {
     id: 'custom',
-    label: 'Custom Message',
+    label: '✏️ Custom Message',
     text: '',
   },
 ];
