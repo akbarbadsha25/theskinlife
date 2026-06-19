@@ -69,6 +69,8 @@ export function AppProvider({ children }) {
       if (cData) setClinicConfig({
         dailyPatientLimit: cData.daily_patient_limit,
         workingDays: cData.working_days,
+        reminderDaysBefore: cData.reminder_days_before ?? 2,
+        followupDaysAfter: cData.followup_days_after ?? 0,
       });
       if (dData) setDoctorData({
         name: dData.name || defaultDoctorProfile.name,
@@ -253,10 +255,10 @@ export function AppProvider({ children }) {
     const newAppointment = toAppointment(apptData);
     setAppointments(prev => [...prev, newAppointment]);
 
-    // Auto-schedule reminder 2 days before
+    // Auto-schedule reminder N days before (configurable)
     const patient = patients.find(p => p.id === patientId);
     const sendOnDate = new Date(date + 'T00:00:00');
-    sendOnDate.setDate(sendOnDate.getDate() - 2);
+    sendOnDate.setDate(sendOnDate.getDate() - (clinicConfig.reminderDaysBefore ?? 2));
 
     const reminderRow = {
       id: `SR${Date.now()}`,
@@ -274,7 +276,9 @@ export function AppProvider({ children }) {
     const { data: remData } = await supabase.from('reminders').insert(reminderRow).select().single();
     if (remData) setReminders(prev => [...prev, toReminder(remData)]);
 
-    // Auto-schedule post-visit follow-up for the appointment day
+    // Auto-schedule post-visit follow-up N days after (configurable)
+    const followUpDate = new Date(date + 'T00:00:00');
+    followUpDate.setDate(followUpDate.getDate() + (clinicConfig.followupDaysAfter ?? 0));
     const followUpRow = {
       id: `FU${Date.now()}`,
       patient_id: patientId,
@@ -283,7 +287,7 @@ export function AppProvider({ children }) {
       appointment_id: apptId,
       appointment_date: date,
       appointment_time: time,
-      send_on: date,
+      send_on: followUpDate.toISOString().split('T')[0],
       status: 'pending',
       template: 'post_visit_followup',
     };
@@ -314,6 +318,8 @@ export function AppProvider({ children }) {
     const row = {};
     if (newConfig.dailyPatientLimit !== undefined) row.daily_patient_limit = newConfig.dailyPatientLimit;
     if (newConfig.workingDays !== undefined) row.working_days = newConfig.workingDays;
+    if (newConfig.reminderDaysBefore !== undefined) row.reminder_days_before = newConfig.reminderDaysBefore;
+    if (newConfig.followupDaysAfter !== undefined) row.followup_days_after = newConfig.followupDaysAfter;
     const { error } = await supabase.from('clinic_settings').update(row).eq('id', 1);
     if (!error) setClinicConfig(prev => ({ ...prev, ...newConfig }));
   }, []);

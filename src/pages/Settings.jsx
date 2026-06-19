@@ -11,11 +11,10 @@ export default function Settings() {
     phone: doctor.phone.replace(/^91/, ''),
     email: doctor.email,
     address: doctor.address,
-    defaultTemplate: 'followup',
-    autoReminder: true,
-    reminderDaysBefore: '1',
     dailyPatientLimit: String(clinicConfig.dailyPatientLimit),
     workingDays: clinicConfig.workingDays,
+    reminderDaysBefore: String(clinicConfig.reminderDaysBefore ?? 2),
+    followupDaysAfter: String(clinicConfig.followupDaysAfter ?? 0),
   });
 
   function handleChange(e) {
@@ -50,6 +49,8 @@ export default function Settings() {
     updateClinicConfig({
       dailyPatientLimit: limit,
       workingDays: form.workingDays,
+      reminderDaysBefore: parseInt(form.reminderDaysBefore, 10),
+      followupDaysAfter: parseInt(form.followupDaysAfter, 10),
     });
     showToast('Settings saved successfully!', 'success');
   }
@@ -162,41 +163,40 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Notification Preferences */}
+          {/* Reminder Settings */}
           <div className="card" style={{ marginBottom: '24px' }}>
             <div className="settings-section">
-              <h3>Notification Preferences</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h3><Clock size={18} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />WhatsApp Reminder Timing</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="form-group">
-                  <label className="form-label">Default Reminder Template</label>
-                  <select className="form-select" name="defaultTemplate" value={form.defaultTemplate} onChange={handleChange}>
-                    <option value="followup">Follow-up Reminder</option>
-                    <option value="checkup">Regular Check-up</option>
-                    <option value="report">Report Collection</option>
-                    <option value="custom">Custom Message</option>
-                  </select>
+                  <label className="form-label">Appointment Reminder — Days Before Visit</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <select className="form-select" name="reminderDaysBefore" value={form.reminderDaysBefore} onChange={handleChange} style={{ maxWidth: 200 }}>
+                      <option value="1">1 day before</option>
+                      <option value="2">2 days before</option>
+                      <option value="3">3 days before</option>
+                      <option value="5">5 days before</option>
+                      <option value="7">1 week before</option>
+                    </select>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
+                    When an appointment is booked, a WhatsApp reminder will be auto-scheduled this many days before the visit.
+                  </p>
                 </div>
+
                 <div className="form-group">
-                  <label className="form-label">Auto-Reminder Days Before Visit</label>
-                  <select className="form-select" name="reminderDaysBefore" value={form.reminderDaysBefore} onChange={handleChange}>
-                    <option value="1">1 day before</option>
-                    <option value="2">2 days before</option>
-                    <option value="3">3 days before</option>
-                    <option value="7">1 week before</option>
-                  </select>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <input
-                    type="checkbox"
-                    name="autoReminder"
-                    checked={form.autoReminder}
-                    onChange={handleChange}
-                    id="autoReminder"
-                    style={{ width: 18, height: 18, accentColor: 'var(--green-700)' }}
-                  />
-                  <label htmlFor="autoReminder" style={{ fontSize: 14, color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                    Enable automatic WhatsApp reminders before scheduled visits
-                  </label>
+                  <label className="form-label">Post-Visit Follow-up — Days After Visit</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <select className="form-select" name="followupDaysAfter" value={form.followupDaysAfter} onChange={handleChange} style={{ maxWidth: 200 }}>
+                      <option value="0">Same day as visit</option>
+                      <option value="1">1 day after</option>
+                      <option value="2">2 days after</option>
+                      <option value="3">3 days after</option>
+                    </select>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
+                    After each visit, a follow-up reminder will appear for the receptionist to send a care message to the patient.
+                  </p>
                 </div>
               </div>
             </div>
