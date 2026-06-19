@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
 import { cosmetologyTreatments } from '../data/mockData';
 
 function validatePatientId(value, patients, currentId) {
@@ -19,7 +18,7 @@ function validatePatientId(value, patients, currentId) {
   return null;
 }
 
-function validateForm(form, isDoctor) {
+function validateForm(form) {
   const errors = {};
   if (!form.patientId.trim()) errors.patientId = 'Patient ID is required.';
   else if (!/^[A-Za-z0-9\-]{2,20}$/.test(form.patientId.trim()))
@@ -31,22 +30,14 @@ function validateForm(form, isDoctor) {
   const age = parseInt(form.age);
   if (!form.age) errors.age = 'Age is required.';
   else if (isNaN(age) || age < 1 || age > 120) errors.age = 'Age must be between 1 and 120.';
-  if (isDoctor && !form.treatment) errors.treatment = 'Please select a treatment.';
   return errors;
 }
 
 export default function PatientForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addPatient, updatePatient, getPatient, patients } = useApp();
-  const { isDoctor } = useAuth();
+  const { addPatient, updatePatient, getPatient, patients, getNextPatientId } = useApp();
   const isEdit = !!id;
-
-  // Receptionists cannot edit patient records — redirect away
-  if (isEdit && !isDoctor) {
-    navigate(`/patients/${id}`, { replace: true });
-    return null;
-  }
 
   const [form, setForm] = useState({
     patientId: '',
@@ -73,16 +64,18 @@ export default function PatientForm() {
           age: String(patient.age),
           gender: patient.gender,
           phone: patient.phone.replace(/^91/, ''),
-          email: patient.email,
-          address: patient.address,
-          bloodGroup: patient.bloodGroup,
-          condition: patient.condition,
+          email: patient.email || '',
+          address: patient.address || '',
+          bloodGroup: patient.bloodGroup || '',
+          condition: patient.condition || '',
           treatment: patient.treatment || '',
           notes: patient.notes || '',
         });
       }
+    } else {
+      setForm(prev => ({ ...prev, patientId: getNextPatientId() }));
     }
-  }, [id, isEdit, getPatient]);
+  }, [id, isEdit, getPatient, getNextPatientId]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -97,7 +90,7 @@ export default function PatientForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const errs = validateForm(form, isDoctor);
+    const errs = validateForm(form);
     const idDupError = !errs.patientId
       ? validatePatientId(form.patientId, patients, id)
       : null;
@@ -156,7 +149,7 @@ export default function PatientForm() {
             </div>
             {errors.patientId
               ? <span className="field-error">{errors.patientId}</span>
-              : <span className="field-hint">Unique clinic identifier — letters, numbers, hyphens (2–20 chars).</span>
+              : <span className="field-hint">Auto-generated. You can change it if needed.</span>
             }
           </div>
 
@@ -250,53 +243,44 @@ export default function PatientForm() {
             />
           </div>
 
-          {isDoctor ? (
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Condition / Concern</label>
-                <input
-                  className="form-input"
-                  name="condition"
-                  value={form.condition}
-                  onChange={handleChange}
-                  placeholder="e.g. Acne Scarring, Skin Brightening"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Treatment *</label>
-                <select
-                  className={`form-select ${errors.treatment ? 'input-error' : ''}`}
-                  name="treatment"
-                  value={form.treatment}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Treatment</option>
-                  {cosmetologyTreatments.map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                {errors.treatment && <span className="field-error">{errors.treatment}</span>}
-              </div>
-            </div>
-          ) : (
-            <div className="form-notice">
-              <span>Treatment &amp; condition will be assigned by the Doctor.</span>
-            </div>
-          )}
-
-          {isDoctor && (
+          <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Doctor's Notes</label>
-              <textarea
-                className="form-textarea"
-                name="notes"
-                value={form.notes}
+              <label className="form-label">Condition / Concern</label>
+              <input
+                className="form-input"
+                name="condition"
+                value={form.condition}
                 onChange={handleChange}
-                placeholder="Add any relevant medical notes..."
-                rows={4}
+                placeholder="e.g. Acne Scarring, Skin Brightening"
               />
             </div>
-          )}
+            <div className="form-group">
+              <label className="form-label">Treatment</label>
+              <select
+                className="form-select"
+                name="treatment"
+                value={form.treatment}
+                onChange={handleChange}
+              >
+                <option value="">Select Treatment</option>
+                {cosmetologyTreatments.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea
+              className="form-textarea"
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              placeholder="Add any relevant notes..."
+              rows={4}
+            />
+          </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '8px' }}>
             <Link to={isEdit ? `/patients/${id}` : '/patients'} className="btn btn-secondary">

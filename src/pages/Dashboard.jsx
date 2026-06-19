@@ -19,7 +19,12 @@ export default function Dashboard() {
   const dueReminders = reminders.filter(r => r.status === 'pending' && r.sendOn <= today);
 
   const recentPatients = [...patients]
-    .sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit))
+    .sort((a, b) => {
+      if (!a.lastVisit && !b.lastVisit) return 0;
+      if (!a.lastVisit) return 1;
+      if (!b.lastVisit) return -1;
+      return new Date(b.lastVisit) - new Date(a.lastVisit);
+    })
     .slice(0, 5);
 
   function openReminderModal(pending) {
@@ -203,7 +208,7 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td>{patient.condition}</td>
-                    <td>{new Date(patient.lastVisit).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</td>
+                    <td>{patient.lastVisit ? new Date(patient.lastVisit + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
                     <td>
                       <span className={`badge-status ${patient.status}`}>
                         <span className="badge-dot"></span>

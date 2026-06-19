@@ -85,8 +85,17 @@ export function AppProvider({ children }) {
 
   // ── Patients ──────────────────────────────────────────────────────────────
 
+  const getNextPatientId = useCallback(() => {
+    const numericIds = patients
+      .map(p => parseInt(p.id))
+      .filter(n => !isNaN(n) && n >= 101);
+    return numericIds.length > 0 ? String(Math.max(...numericIds) + 1) : '101';
+  }, [patients]);
+
   const addPatient = useCallback(async (patient) => {
-    const id = (patient.patientId || `P${Date.now()}`).trim();
+    const numericIds = patients.map(p => parseInt(p.id)).filter(n => !isNaN(n) && n >= 101);
+    const nextId = numericIds.length > 0 ? String(Math.max(...numericIds) + 1) : '101';
+    const id = (patient.patientId && patient.patientId.trim()) ? patient.patientId.trim() : nextId;
     const row = {
       id,
       name: patient.name,
@@ -352,7 +361,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       patients, reminders, toasts, appointments, clinicConfig,
       doctor: doctorData, updateDoctor,
-      addPatient, updatePatient, deletePatient,
+      addPatient, updatePatient, deletePatient, getNextPatientId,
       sendReminder, dismissReminder, showToast,
       getPatient, getStats,
       getAppointmentsForDate, getBookingCountForDate,

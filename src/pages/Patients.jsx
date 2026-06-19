@@ -13,11 +13,14 @@ export default function Patients() {
   const [reminderPatient, setReminderPatient] = useState(null);
 
   const filtered = patients.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.id.toLowerCase().includes(search.toLowerCase()) ||
-      p.condition.toLowerCase().includes(search.toLowerCase()) ||
-      (p.treatment && p.treatment.toLowerCase().includes(search.toLowerCase())) ||
-      p.phone.includes(search);
+    const q = search.toLowerCase();
+    const searchDigits = search.replace(/\D/g, '');
+    const matchesSearch = !search ||
+      p.name.toLowerCase().includes(q) ||
+      p.id.toLowerCase().includes(q) ||
+      (p.condition || '').toLowerCase().includes(q) ||
+      (p.treatment || '').toLowerCase().includes(q) ||
+      (searchDigits.length >= 3 && p.phone.includes(searchDigits));
     const matchesFilter = filter === 'all' || p.status === filter;
     return matchesSearch && matchesFilter;
   });
@@ -105,7 +108,7 @@ export default function Patients() {
                     +91 {patient.phone.slice(2)}
                   </td>
                   <td style={{ fontSize: 13, color: 'var(--green-700)', fontWeight: 500 }}>{patient.treatment || patient.condition}</td>
-                  <td>{new Date(patient.lastVisit).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>{patient.lastVisit ? new Date(patient.lastVisit + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                   <td>
                     {patient.nextVisit
                       ? new Date(patient.nextVisit).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })

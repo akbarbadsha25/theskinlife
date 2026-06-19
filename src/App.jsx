@@ -11,7 +11,7 @@ import Reminders from './pages/Reminders';
 import Settings from './pages/Settings';
 
 export default function App() {
-  const { currentUser, isDoctor } = useAuth();
+  const { currentUser } = useAuth();
 
   if (!currentUser) {
     return (
@@ -31,7 +31,7 @@ export default function App() {
         <Route path="/patients/:id/edit" element={<PatientForm />} />
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/reminders" element={<Reminders />} />
-        <Route path="/settings" element={isDoctor ? <Settings /> : <Navigate to="/" replace />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

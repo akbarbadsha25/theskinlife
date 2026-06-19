@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Phone, Mail, MapPin, Calendar, MessageCircle, Edit, Trash2, Stethoscope, Droplets, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
 import { getAvatarColor, getInitials } from '../data/mockData';
 import ReminderModal from '../components/ReminderModal';
 
@@ -10,15 +9,20 @@ export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getPatient, deletePatient, appointments } = useApp();
-  const { isDoctor } = useAuth();
   const [showReminder, setShowReminder] = useState(false);
 
   const patient = getPatient(id);
 
   const today = new Date().toISOString().split('T')[0];
-  const nextAppointment = appointments
-    .filter(a => a.patientId === id && a.status !== 'cancelled' && a.date >= today)
-    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))[0] || null;
+  const patientAppointments = appointments
+    .filter(a => a.patientId === id && a.status !== 'cancelled')
+    .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+
+  const nextAppointment = [...patientAppointments]
+    .reverse()
+    .find(a => a.date >= today) || null;
+
+  const visitHistory = patientAppointments.filter(a => a.date < today);
 
   if (!patient) {
     return (
@@ -72,17 +76,13 @@ export default function PatientDetail() {
             <MessageCircle size={18} />
             Send Reminder
           </button>
-          {isDoctor && (
-            <>
-              <Link to={`/patients/${patient.id}/edit`} className="btn btn-secondary">
-                <Edit size={18} />
-                Edit
-              </Link>
-              <button className="btn btn-danger" onClick={handleDelete}>
-                <Trash2 size={18} />
-              </button>
-            </>
-          )}
+          <Link to={`/patients/${patient.id}/edit`} className="btn btn-secondary">
+            <Edit size={18} />
+            Edit
+          </Link>
+          <button className="btn btn-danger" onClick={handleDelete}>
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
 
@@ -137,10 +137,10 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      {/* Doctor Notes — Doctor only */}
-      {isDoctor && patient.notes && (
+      {/* Notes */}
+      {patient.notes && (
         <div className="card" style={{ marginBottom: '24px' }}>
-          <h3 className="card-title" style={{ marginBottom: '12px' }}>Doctor's Notes</h3>
+          <h3 className="card-title" style={{ marginBottom: '12px' }}>Notes</h3>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{patient.notes}</p>
         </div>
       )}
@@ -148,21 +148,21 @@ export default function PatientDetail() {
       {/* Visit History */}
       <div className="card">
         <h3 className="card-title" style={{ marginBottom: '16px' }}>Visit History</h3>
-        {patient.visits.length > 0 ? (
+        {visitHistory.length > 0 ? (
           <div className="timeline">
-            {patient.visits.map((visit, idx) => (
-              <div key={idx} className="timeline-item">
+            {visitHistory.map((appt) => (
+              <div key={appt.id} className="timeline-item">
                 <div className="timeline-dot">
                   <Calendar size={14} />
                 </div>
                 <div className="timeline-content">
                   <div className="timeline-date">
-                    {new Date(visit.date).toLocaleDateString('en-IN', {
+                    {new Date(appt.date + 'T00:00:00').toLocaleDateString('en-IN', {
                       weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
                     })}
                   </div>
-                  <div className="timeline-title">{visit.type}</div>
-                  <div className="timeline-desc">{visit.notes}</div>
+                  <div className="timeline-title">{appt.treatment || 'Appointment'}</div>
+                  <div className="timeline-desc">Time: {appt.time}</div>
                 </div>
               </div>
             ))}
@@ -171,7 +171,7 @@ export default function PatientDetail() {
           <div className="empty-state">
             <Calendar size={48} />
             <h3>No visit history</h3>
-            <p>This patient's visit records will appear here.</p>
+            <p>Past appointments will appear here once completed.</p>
           </div>
         )}
       </div>
