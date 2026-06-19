@@ -3,7 +3,7 @@ import { LayoutDashboard, Users, Settings, MessageCircle, CalendarDays, LogOut, 
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ open, onClose }) {
-  const { currentUser, logout, isDoctor } = useAuth();
+  const { currentUser, logout } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -11,7 +11,7 @@ export default function Sidebar({ open, onClose }) {
     { path: '/patients', icon: Users, label: 'Patients' },
     { path: '/appointments', icon: CalendarDays, label: 'Appointments' },
     { path: '/reminders', icon: MessageCircle, label: 'Reminders' },
-    ...(isDoctor ? [{ path: '/settings', icon: Settings, label: 'Settings' }] : []),
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
