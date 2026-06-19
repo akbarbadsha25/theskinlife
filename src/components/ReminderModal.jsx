@@ -3,9 +3,9 @@ import { X, MessageCircle, Send } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { reminderTemplates } from '../data/mockData';
 
-export default function ReminderModal({ patient, appointmentDate, scheduledReminderId, onClose }) {
+export default function ReminderModal({ patient, appointmentDate, scheduledReminderId, defaultTemplate, onClose }) {
   const { doctor, sendReminder } = useApp();
-  const [selectedTemplate, setSelectedTemplate] = useState('appointment_reminder');
+  const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate || 'appointment_reminder');
   const [customMessage, setCustomMessage] = useState('');
   const [previewMessage, setPreviewMessage] = useState('');
 

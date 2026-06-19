@@ -16,7 +16,7 @@ export default function Dashboard() {
 
   const [activeReminder, setActiveReminder] = useState(null);
 
-  const dueReminders = reminders.filter(r => r.status === 'pending' && r.sendOn <= today);
+  const dueReminders = reminders.filter(r => r.status === 'pending' && r.sendOn <= today && r.template !== 'post_visit_followup');
 
   const recentPatients = [...patients]
     .sort((a, b) => {

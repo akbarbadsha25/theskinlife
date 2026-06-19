@@ -268,10 +268,27 @@ export function AppProvider({ children }) {
       appointment_time: time,
       send_on: sendOnDate.toISOString().split('T')[0],
       status: 'pending',
+      template: 'appointment_reminder',
     };
 
     const { data: remData } = await supabase.from('reminders').insert(reminderRow).select().single();
     if (remData) setReminders(prev => [...prev, toReminder(remData)]);
+
+    // Auto-schedule post-visit follow-up for the appointment day
+    const followUpRow = {
+      id: `FU${Date.now()}`,
+      patient_id: patientId,
+      patient_name: patientName,
+      phone: patient?.phone || '',
+      appointment_id: apptId,
+      appointment_date: date,
+      appointment_time: time,
+      send_on: date,
+      status: 'pending',
+      template: 'post_visit_followup',
+    };
+    const { data: fuData } = await supabase.from('reminders').insert(followUpRow).select().single();
+    if (fuData) setReminders(prev => [...prev, toReminder(fuData)]);
 
     showToast(
       `Appointment booked for ${patientName} on ${new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} at ${time}`,

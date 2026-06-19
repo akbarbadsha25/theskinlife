@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageCircle, Search, ExternalLink, Clock, Bell, X, CalendarClock } from 'lucide-react';
+import { MessageCircle, Search, ExternalLink, Clock, Bell, X, CalendarClock, HeartHandshake } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import ReminderModal from '../components/ReminderModal';
 
@@ -11,8 +11,9 @@ export default function Reminders() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const dueReminders = reminders.filter(r => r.status === 'pending' && r.sendOn <= today);
-  const upcomingReminders = reminders.filter(r => r.status === 'pending' && r.sendOn > today);
+  const dueReminders = reminders.filter(r => r.status === 'pending' && r.sendOn <= today && r.template !== 'post_visit_followup');
+  const dueFollowUps = reminders.filter(r => r.status === 'pending' && r.sendOn <= today && r.template === 'post_visit_followup');
+  const upcomingReminders = reminders.filter(r => r.status === 'pending' && r.sendOn > today && r.template !== 'post_visit_followup');
   const sentReminders = reminders.filter(r => r.status === 'sent');
 
   const filteredSent = sentReminders.filter(r =>
@@ -34,10 +35,15 @@ export default function Reminders() {
   function openScheduledModal(pending) {
     const patient = patients.find(p => p.id === pending.patientId);
     if (!patient) return;
-    setActiveScheduled({ patient, appointmentDate: pending.appointmentDate, scheduledReminderId: pending.id });
+    setActiveScheduled({
+      patient,
+      appointmentDate: pending.appointmentDate,
+      scheduledReminderId: pending.id,
+      defaultTemplate: pending.template || 'appointment_reminder',
+    });
   }
 
-  const hasPending = dueReminders.length > 0 || upcomingReminders.length > 0;
+  const hasPending = dueReminders.length > 0 || dueFollowUps.length > 0 || upcomingReminders.length > 0;
 
   return (
     <div>
@@ -87,6 +93,42 @@ export default function Reminders() {
                     >
                       <MessageCircle size={13} />
                       Send Now
+                    </button>
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      onClick={() => dismissReminder(r.id)}
+                      title="Dismiss"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Post-Visit Follow-ups Due */}
+          {dueFollowUps.length > 0 && (
+            <div className="scheduled-reminders-card" style={{ marginTop: dueReminders.length > 0 ? '12px' : 0, borderLeft: '3px solid #25D366' }}>
+              <div className="scheduled-section-label" style={{ color: '#25D366' }}>
+                <HeartHandshake size={13} />
+                Post-Visit Follow-ups — {dueFollowUps.length} due today
+              </div>
+              {dueFollowUps.map(r => (
+                <div key={r.id} className="scheduled-reminder-row">
+                  <div className="scheduled-reminder-info">
+                    <div className="scheduled-reminder-name">{r.patientName}</div>
+                    <div className="scheduled-reminder-meta">
+                      Visited today — Send a follow-up WhatsApp message
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      className="btn btn-whatsapp btn-sm"
+                      onClick={() => openScheduledModal(r)}
+                    >
+                      <MessageCircle size={13} />
+                      Send Follow-up
                     </button>
                     <button
                       className="btn btn-sm btn-ghost"
@@ -258,6 +300,7 @@ export default function Reminders() {
           patient={activeScheduled.patient}
           appointmentDate={activeScheduled.appointmentDate}
           scheduledReminderId={activeScheduled.scheduledReminderId}
+          defaultTemplate={activeScheduled.defaultTemplate}
           onClose={() => setActiveScheduled(null)}
         />
       )}
