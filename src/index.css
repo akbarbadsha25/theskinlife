@@ -2025,35 +2025,16 @@ html, body {
   }
 
   .login-left {
-    width: 100%;
-    flex-shrink: 0;
-    min-height: auto;
-  }
-
-  .login-left-inner {
-    padding: 32px 24px 28px;
-    height: auto;
-  }
-
-  .login-hero h1 {
-    font-size: 28px;
-  }
-
-  .login-hero {
-    margin-top: 24px;
-  }
-
-  .login-left-card {
-    display: none;
-  }
-
-  .login-features {
     display: none;
   }
 
   .login-right {
     flex: 1;
-    padding: 32px 24px 40px;
+    width: 100%;
+    padding: 40px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
