@@ -2025,7 +2025,7 @@ html, body {
   }
 
   .login-left {
-    display: none;
+    display: none !important;
   }
 
   .login-right {
