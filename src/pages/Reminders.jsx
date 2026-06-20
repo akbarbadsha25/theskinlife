@@ -200,55 +200,89 @@ export default function Reminders() {
       )}
 
       {filteredSent.length > 0 ? (
-        <div className="card">
-          <div className="section-header" style={{ marginBottom: '4px' }}>
-            <h3 className="section-title">Sent Reminders</h3>
-          </div>
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>Phone</th>
-                  <th>Message Preview</th>
-                  <th>Sent At</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSent.map(reminder => (
-                  <tr key={reminder.id}>
-                    <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{reminder.patientName}</td>
-                    <td style={{ fontFamily: 'monospace', fontSize: 13 }}>+91 {reminder.phone.slice(2)}</td>
-                    <td style={{ maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {reminder.message ? reminder.message.slice(0, 60) + '...' : '—'}
-                    </td>
-                    <td>{reminder.sentAt ? formatSentTime(reminder.sentAt) : '—'}</td>
-                    <td>
-                      <span className="badge-status sent">
-                        <span className="badge-dot"></span>
-                        Sent
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => {
-                          const encodedMessage = encodeURIComponent(reminder.message || '');
-                          window.open(`https://wa.me/${reminder.phone}?text=${encodedMessage}`, '_blank');
-                        }}
-                      >
-                        <ExternalLink size={14} />
-                        Resend
-                      </button>
-                    </td>
+        <>
+          {/* Desktop table */}
+          <div className="card reminder-table-desktop">
+            <div className="section-header" style={{ marginBottom: '4px' }}>
+              <h3 className="section-title">Sent Reminders</h3>
+            </div>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Phone</th>
+                    <th>Message Preview</th>
+                    <th>Sent At</th>
+                    <th>Status</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredSent.map(reminder => (
+                    <tr key={reminder.id}>
+                      <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{reminder.patientName}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 13 }}>+91 {reminder.phone.slice(2)}</td>
+                      <td style={{ maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {reminder.message ? reminder.message.slice(0, 60) + '...' : '—'}
+                      </td>
+                      <td>{reminder.sentAt ? formatSentTime(reminder.sentAt) : '—'}</td>
+                      <td>
+                        <span className="badge-status sent">
+                          <span className="badge-dot"></span>
+                          Sent
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => {
+                            const encodedMessage = encodeURIComponent(reminder.message || '');
+                            window.open(`https://wa.me/${reminder.phone}?text=${encodedMessage}`, '_blank');
+                          }}
+                        >
+                          <ExternalLink size={14} />
+                          Resend
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile cards */}
+          <div className="reminder-cards-mobile">
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+              <h3 className="section-title">Sent Reminders</h3>
+            </div>
+            {filteredSent.map(reminder => (
+              <div key={reminder.id} className="reminder-card-mobile">
+                <div className="reminder-card-mobile-top">
+                  <span className="reminder-card-mobile-name">{reminder.patientName}</span>
+                  <span className="badge-status sent"><span className="badge-dot"></span>Sent</span>
+                </div>
+                <div className="reminder-card-mobile-phone">+91 {reminder.phone.slice(2)}</div>
+                <div className="reminder-card-mobile-time">{reminder.sentAt ? formatSentTime(reminder.sentAt) : '—'}</div>
+                {reminder.message && (
+                  <div className="reminder-card-mobile-msg">{reminder.message.slice(0, 80)}…</div>
+                )}
+                <button
+                  className="btn btn-sm btn-secondary"
+                  style={{ width: '100%', marginTop: 10, justifyContent: 'center' }}
+                  onClick={() => {
+                    const encodedMessage = encodeURIComponent(reminder.message || '');
+                    window.open(`https://wa.me/${reminder.phone}?text=${encodedMessage}`, '_blank');
+                  }}
+                >
+                  <ExternalLink size={14} />
+                  Resend via WhatsApp
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       ) : !hasPending ? (
         <div className="card">
           <div className="empty-state">

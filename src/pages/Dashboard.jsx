@@ -184,7 +184,7 @@ export default function Dashboard() {
                 <tr>
                   <th>Patient</th>
                   <th>Condition</th>
-                  <th>Last Visit</th>
+                  <th className="hide-mobile-col">Last Visit</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -207,8 +207,8 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </td>
-                    <td>{patient.condition}</td>
-                    <td>{patient.lastVisit ? new Date(patient.lastVisit + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
+                    <td>{patient.condition || '—'}</td>
+                    <td className="hide-mobile-col">{patient.lastVisit ? new Date(patient.lastVisit + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
                     <td>
                       <span className={`badge-status ${patient.status}`}>
                         <span className="badge-dot"></span>

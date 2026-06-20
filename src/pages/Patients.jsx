@@ -73,8 +73,8 @@ export default function Patients() {
         </div>
       </div>
 
-      {/* Patient Table */}
-      <div className="card">
+      {/* Patient Table — desktop */}
+      <div className="card patient-table-desktop">
         <div className="table-container">
           <table className="data-table">
             <thead>
@@ -149,6 +149,46 @@ export default function Patients() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Patient Cards — mobile */}
+      <div className="patient-cards-mobile">
+        {filtered.map((patient, idx) => (
+          <div key={patient.id} className="patient-card-mobile" onClick={() => navigate(`/patients/${patient.id}`)}>
+            <div className="patient-card-mobile-avatar" style={{ background: getAvatarColor(idx) }}>
+              {getInitials(patient.name)}
+            </div>
+            <div className="patient-card-mobile-info">
+              <div className="patient-card-mobile-name">{patient.name}</div>
+              <div className="patient-card-mobile-sub">
+                ID {patient.id} · {patient.age}y {patient.gender.charAt(0)} · +91 {patient.phone.slice(2)}
+              </div>
+              {(patient.treatment || patient.condition) && (
+                <div className="patient-card-mobile-treatment">{patient.treatment || patient.condition}</div>
+              )}
+            </div>
+            <div className="patient-card-mobile-right">
+              <span className={`badge-status ${patient.status}`}>
+                <span className="badge-dot"></span>
+                {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+              </span>
+              <button
+                className="btn btn-sm btn-whatsapp"
+                onClick={e => { e.stopPropagation(); setReminderPatient(patient); }}
+                title="Send WhatsApp"
+              >
+                <MessageCircle size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="empty-state" style={{ padding: '48px 24px' }}>
+            <Search size={40} />
+            <h3>No patients found</h3>
+            <p>Try adjusting your search or filter.</p>
+          </div>
+        )}
       </div>
 
       {/* Reminder Modal */}
