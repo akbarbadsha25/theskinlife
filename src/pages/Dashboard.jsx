@@ -173,7 +173,9 @@ export default function Dashboard() {
 
       {/* Dashboard Grid */}
       <div className="dashboard-grid">
-        <div className="card">
+
+        {/* Recent Patients — desktop table */}
+        <div className="card dashboard-recent-desktop">
           <div className="section-header">
             <h3 className="section-title">Recent Patients</h3>
             <Link to="/patients" className="see-all">See all →</Link>
@@ -222,12 +224,48 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Recent Patients — mobile cards */}
+        <div className="card dashboard-recent-mobile">
+          <div className="section-header">
+            <h3 className="section-title">Recent Patients</h3>
+            <Link to="/patients" className="see-all">See all →</Link>
+          </div>
+          {recentPatients.map((patient, idx) => (
+            <div
+              key={patient.id}
+              className="patient-card-mobile"
+              onClick={() => navigate(`/patients/${patient.id}`)}
+            >
+              <div className="patient-card-mobile-avatar" style={{ background: getAvatarColor(idx) }}>
+                {getInitials(patient.name)}
+              </div>
+              <div className="patient-card-mobile-info">
+                <div className="patient-card-mobile-name">{patient.name}</div>
+                <div className="patient-card-mobile-sub">{patient.condition || '—'}</div>
+              </div>
+              <div className="patient-card-mobile-right">
+                <span className={`badge-status ${patient.status}`}>
+                  <span className="badge-dot"></span>
+                  {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Today's Schedule */}
         <div className="card">
           <div className="section-header">
             <h3 className="section-title">Today's Schedule</h3>
-            <Link to="/appointments" className="see-all">{todayAppointments.length} appointments →</Link>
+            <Link to="/appointments" className="see-all">
+              {todayAppointments.length} appt{todayAppointments.length !== 1 ? 's' : ''} →
+            </Link>
           </div>
-          {todayAppointments.map((apt) => (
+          {todayAppointments.length === 0 ? (
+            <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+              No appointments today
+            </div>
+          ) : todayAppointments.map((apt) => (
             <div
               key={apt.id}
               className="appointment-card"
